@@ -58,6 +58,13 @@ target_include_directories(rabbitizer PRIVATE
 # fmtlib
 add_subdirectory(lib/fmt)
 
+# AppleClang 21 rejects fmt's consteval format-string checks. The pinned fmt
+# revision supports opting out while retaining its constexpr fallback.
+if (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND
+    CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 21)
+    target_compile_definitions(fmt PUBLIC FMT_USE_CONSTEVAL=0)
+endif()
+
 # tomlplusplus
 set(TOML_ENABLE_FORMATTERS OFF)
 add_subdirectory(lib/tomlplusplus)
