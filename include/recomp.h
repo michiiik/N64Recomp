@@ -590,6 +590,12 @@ struct recomp_context {
     // prologue. _target carries the rejected entry PC (interpreter + telemetry).
     uint32_t dispatch_entry_rejected;
     uint32_t dispatch_entry_rejected_target;
+    // Runtime address of the fragment currently being relocated by a game
+    // hook. Game-specific generated hooks may use this transient value to
+    // resolve fragment-local addresses after registration; it is deliberately
+    // part of the per-call context so nested/reentrant calls cannot share
+    // mutable global state.
+    uint32_t fragment_runtime_base;
 };
 
 // Asserts the FPR index is legal: either even, or any index once the context
