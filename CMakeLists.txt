@@ -4,6 +4,36 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 # set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+# Stage the runtime JIT's vendored TinyCC beside a consuming executable.
+# Consumers add N64Recomp as a subdirectory and call this after defining their
+# executable target. Keeping the path and copy policy here means each game
+# does not need to duplicate knowledge of the bundled toolchain layout.
+function(n64recomp_stage_tcc target)
+    if (NOT WIN32)
+        return()
+    endif()
+
+    if (NOT TARGET "${target}")
+        message(FATAL_ERROR
+            "n64recomp_stage_tcc: target '${target}' does not exist")
+    endif()
+
+    set(_n64recomp_tcc_dir
+        "${CMAKE_CURRENT_FUNCTION_LIST_DIR}/lib/tcc")
+    if (EXISTS "${_n64recomp_tcc_dir}/libtcc.dll")
+        add_custom_command(TARGET "${target}" POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+                "${_n64recomp_tcc_dir}"
+                "$<TARGET_FILE_DIR:${target}>/tcc"
+            COMMENT "Staging vendored TinyCC toolchain"
+        )
+    else()
+        message(WARNING
+            "Bundled TinyCC was not found at ${_n64recomp_tcc_dir}; "
+            "runtime overlay JIT will be unavailable until the recursive "
+            "submodules are initialized.")
+    endif()
+endfunction()
 
 # Rabbitizer
 project(rabbitizer)
